@@ -1,0 +1,111 @@
+%*************************************************
+% Design of a state-feedback tracking controller
+% for the quadcopter
+%*************************************************
+
+clear all;
+clc;
+
+%%
+%*******************************************
+% System matrices of the linearized model
+% around:
+% x* = [0 0 0 0 0 0 0 0 0 0 0 0];        -> body frame aligns with inertial frame
+% u* = [40.8750 40.8750 40.8750 40.8750] -> thrust cancels out gravity
+%*******************************************
+
+load("quadcopter_linear_model.mat");
+
+% Assume the entire state vector is available 
+Cd = eye(12); Dd = zeros(12, 4);
+
+disp('Discretized Linear model of the plant:');
+model = ss(Ad, Bd, Cd, Dd); 
+
+%************************
+%Checking the stability
+%************************
+fprintf('\n\nPoles:\n');
+disp(eig (Ad))
+
+%****************************************************
+% Checking if the system is controlable or not
+%****************************************************
+CO = ctrb(Ad,Bd);
+disp('Rank of the controllability matrix:');
+rank(CO)
+
+%%
+%******************************************************
+% Computation of the feedback gain via LQR
+%******************************************************
+
+% Setting Qd and Rd
+
+Qd = diag([
+    50  50  100 ...   % x y z
+    5   5   10  ...   % vx vy vz
+    200 200 20  ...   % phi theta psi
+    5   5   5         % wx wy wz
+]);
+
+Rd = 0.1*eye(4);
+
+%Computing K
+
+fprintf('\nThe state feedback gain is:\n');
+K = dlqr(Ad,Bd,Qd,Rd)
+
+%%
+%*********************************************
+% Reference Input - full state feedback
+% Computation of the matrices Nx and Nu
+%*********************************************
+    
+%number of states     
+nx = 12;
+%number of inputs
+nu = 4;
+%number of outputs: Assumption: entire state vector is available
+ny = 12;
+
+big_A = [Ad-eye(12), Bd;
+         Cd, Dd];
+
+big_Y =[ zeros(nx,ny)
+         eye(ny,ny) ];
+
+big_N = big_A\big_Y; % Under-actuated system -> Overdetermined system -> Tall matrix 
+
+fprintf('\nReference-Input  full state feedback. The matrices Nx and Nu are:');
+
+Nx = big_N(1:nx,:)
+Nu = big_N (nx+1:end,:)
+
+%return
+
+%%
+%**************************
+%  Integral control
+%  We add two integrators
+%**************************
+
+%Constructing the Augmented system
+NA = [ zeros(ny,ny)  C
+       zeros(nx,ny)  A];
+
+NB = [ D 
+       B];
+  
+
+%checking the controlabillity of the Augmented system
+disp('Rank of the controllability matrix of the augmented system:');
+rank(ctrb(NA,NB))
+
+%computing the feedback matrix of the augmented system
+full_K = place(NA,NB,[cl_poles;-2; -2.1] );
+
+fprintf('\nThe state feedback gains of the augmented system are:\n');
+
+Ki = full_K(:,1:2)
+Ks = full_K(:,3:end)
