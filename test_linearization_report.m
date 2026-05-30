@@ -1,20 +1,14 @@
 close all
 clc
 
-%%
-set(groot, 'defaultAxesTickLabelInterpreter', 'latex'); 
-set(groot, 'defaultLegendInterpreter', 'latex');
-set(groot, 'defaultTextInterpreter', 'latex');
+%% Check equilibrium condition f(x_eq,u_eq) = 0
 
-set(groot, 'defaultAxesFontSize', 20);
+x_dot_eq = nonlinear_quadcopter_rhs(0, x_eq, u_eq, ...
+    m, L, k, b, g, kd, Ixx, Iyy, Izz, cm);
 
-% Set global Font Size for Text (includes X/Y Labels and Titles)
-set(groot, 'defaultTextFontSize', 20);
+disp('f(x_eq,u_eq) = ')
+disp(x_dot_eq)
 
-% Set global Font Size for Legends
-set(groot, 'defaultLegendFontSize', 14);
-
-set(groot, 'defaultLineLineWidth', 2);
 %% Simulation settings
 
 t_final = 5;  % seconds
@@ -98,7 +92,7 @@ grid on
 xlabel('Time [s]')
 ylabel('\Delta u_i [V^2]')
 title('Input perturbation applied to both models')
-legend('$\Delta u_1$','$\Delta u_2$','$\Delta u_3$','$\Delta u_4$', ...
+legend('\Delta u_1','\Delta u_2','\Delta u_3','\Delta u_4', ...
        'Location','best')
 
 %% Plot output comparison
@@ -122,22 +116,23 @@ end
 
 sgtitle('Validation of linearized quadcopter model')
 
-%% Plot output error
+%% Plot absolute output error
 
 output_error = y_nonlinear - y_linear;
+abs_output_error = abs(output_error);
 
 figure
 
 for i = 1:6
     subplot(3,2,i)
-    plot(t, output_error(:,i), 'LineWidth', 1.5)
+    plot(t, abs_output_error(:,i), 'LineWidth', 1.5)
     grid on
     xlabel('Time [s]')
-    ylabel(['Error in ', output_names{i}])
-    title(['Nonlinear - linear: ', output_names{i}])
+    ylabel(['Absolute error in ', output_names{i}])
+    title(['|Nonlinear - linear|: ', output_names{i}])
 end
 
-sgtitle('Difference between nonlinear and linear model outputs')
+sgtitle('Absolute difference between nonlinear and linear model outputs')
 
 %% Print maximum absolute errors
 
@@ -147,7 +142,7 @@ disp('Maximum absolute output errors over 5 seconds:')
 disp('Columns: x, y, z, phi, theta, psi')
 disp(max_abs_error)
 
-%% Local nonlinear model function
+%% Full nonlinear function for our model
 
 function x_dot = nonlinear_quadcopter_rhs(t_current, x_current, u_eq, ...
                                           m, L, k, b, g, kd, ...
