@@ -8,12 +8,12 @@ clc;
 
 load("references_01.mat");
 
-%%
+%% Ignore This
 
-hb = find_system(gcs,'Type','Block');
-handles = cell2mat(get_param(hb,'Handle'));
-arrayfun(@(h) set_param(h,'ShowName','on'), handles);
-arrayfun(@(h) set_param(h,'ShowName','on','HideAutomaticName','off'), handles);
+%hb = find_system(gcs,'Type','Block');
+%handles = cell2mat(get_param(hb,'Handle'));
+%arrayfun(@(h) set_param(h,'ShowName','on'), handles);
+%arrayfun(@(h) set_param(h,'ShowName','on','HideAutomaticName','off'), handles);
 
 %%
 %*******************************************
@@ -148,9 +148,9 @@ Ks = full_K(:,4:end)
 %%
 %saveas(figure(1), 'report/figures/lqr/sim_int_top.png')
 %saveas(figure(2), 'report/figures/lqr/sim_int_traj.png')
-saveas(figure(3), 'report/figures/lqr/sim_int_pos.png')
-saveas(figure(4), 'report/figures/lqr/sim_int_angle.png')
-saveas(figure(5), 'report/figures/lqr/sim_int_volt.png')
+%saveas(figure(3), 'report/figures/lqr/sim_int_pos.png')
+%saveas(figure(4), 'report/figures/lqr/sim_int_angle.png')
+%saveas(figure(5), 'report/figures/lqr/sim_int_volt.png')
 
 
 %% Tuning reports
